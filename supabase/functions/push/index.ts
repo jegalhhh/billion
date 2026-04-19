@@ -11,11 +11,12 @@ interface PushBody {
 }
 
 interface ParsedTx {
-  trade_date: string;   // YYYY-MM-DD
-  trade_time: string;   // HH:MM
-  amount: number;       // 양수=입금, 음수=출금
+  trade_date: string;    // YYYY-MM-DD
+  trade_time: string;    // HH:MM
+  amount: number;        // 양수=입금, 음수=출금
   balance: number;
   counterpart: string;
+  account_last4: string; // 계좌 뒷 4자리
 }
 
 /** 카카오뱅크 7줄 포맷 파싱 */
@@ -47,7 +48,11 @@ function parse(raw: string): ParsedTx | null {
   // 6번째 줄: 상대방 이름
   const counterpart = lines[5] || "";
 
-  return { trade_date, trade_time, amount, balance, counterpart };
+  // 3번째 줄: "제**혁(4532)" → 계좌 뒷 4자리
+  const last4Match = lines[2].match(/\((\d{4})\)/);
+  const account_last4 = last4Match ? last4Match[1] : "";
+
+  return { trade_date, trade_time, amount, balance, counterpart, account_last4 };
 }
 
 /** 현재 연도 KST 기준 week_label 계산 */
@@ -95,13 +100,27 @@ Deno.serve(async (req) => {
   }
   const { user_id } = profile;
 
-  const { data: account, error: accErr } = await supabase
+  // 파싱 먼저 — account_last4로 계좌 특정
+  const parsed = parse(raw);
+
+  if (!parsed) {
+    return new Response(JSON.stringify({ ok: false, reason: "parse_failed" }), { status: 200 });
+  }
+
+  const { trade_date, trade_time, amount, balance, counterpart, account_last4 } = parsed;
+
+  // account_last4로 계좌 매칭, 없으면 첫 번째 계좌로 fallback
+  let accountQuery = supabase
     .from("accounts")
     .select("id, week_start_day")
     .eq("user_id", user_id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
+
+  if (account_last4) {
+    accountQuery = accountQuery.eq("account_last4", account_last4);
+  }
+
+  const { data: account, error: accErr } = await accountQuery.limit(1).maybeSingle();
 
   if (accErr || !account) {
     return new Response(JSON.stringify({ error: "account not found" }), { status: 404 });
@@ -109,30 +128,6 @@ Deno.serve(async (req) => {
   const account_id = account.id;
   const week_start_day: number = account.week_start_day ?? 0;
 
-  // 파싱
-  const parsed = parse(raw);
-
-  if (!parsed) {
-    // 파싱 실패 — raw 원문 저장
-    const today = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }).slice(0, 10).replace(/\. /g, "-").replace(".", "");
-    await supabase.from("transactions").insert({
-      account_id,
-      user_id,
-      trade_date: today,
-      trade_time: "00:00",
-      amount: 0,
-      balance: 0,
-      counterpart: "",
-      description: "",
-      raw,
-      week_label: "",
-      is_confirmed: 0,
-      source: "parse_failed",
-    }).on("conflict", "do-nothing");
-    return new Response(JSON.stringify({ ok: false, reason: "parse_failed" }), { status: 200 });
-  }
-
-  const { trade_date, trade_time, amount, balance, counterpart } = parsed;
   const week_label = calcWeekLabel(trade_date, week_start_day);
 
   // 잔액 불일치 감지: 마지막 거래의 잔액과 비교

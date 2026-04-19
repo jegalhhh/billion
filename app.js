@@ -445,6 +445,7 @@ export async function initSetup() {
   if (acc) {
     document.getElementById("bank-code").value = acc.bank_code;
     document.getElementById("alias").value = acc.alias;
+    document.getElementById("account-last4").value = acc.account_last4 || "";
     document.getElementById("initial-balance").value = acc.initial_balance;
     document.getElementById("final-goal").value = acc.final_goal_amount;
     document.getElementById("week-goal").value = acc.week_goal_amount;
@@ -464,6 +465,7 @@ export async function saveSetup() {
 
   const bankCode = document.getElementById("bank-code").value;
   const alias = document.getElementById("alias").value.trim();
+  const accountLast4 = document.getElementById("account-last4").value.trim() || null;
   const initialBalance = parseInt(document.getElementById("initial-balance").value) || 0;
   const finalGoal = parseInt(document.getElementById("final-goal").value) || 0;
   const weekGoal = parseInt(document.getElementById("week-goal").value) || 0;
@@ -481,12 +483,13 @@ export async function saveSetup() {
 
   if (existing) {
     await sb.from("accounts").update({
-      bank_code: bankCode, alias, initial_balance: initialBalance,
-      final_goal_amount: finalGoal, week_goal_amount: weekGoal, week_start_day: weekStartDay,
+      bank_code: bankCode, alias, account_last4: accountLast4,
+      initial_balance: initialBalance, final_goal_amount: finalGoal,
+      week_goal_amount: weekGoal, week_start_day: weekStartDay,
     }).eq("id", existing.id);
   } else {
     await sb.from("accounts").insert({
-      user_id: currentUser.id, bank_code: bankCode, alias,
+      user_id: currentUser.id, bank_code: bankCode, alias, account_last4: accountLast4,
       initial_balance: initialBalance, final_goal_amount: finalGoal,
       week_goal_amount: weekGoal, week_start_day: weekStartDay,
     });
