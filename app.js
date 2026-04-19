@@ -75,6 +75,7 @@ let isSignUp = false;
 
 // ── 인증 ──────────────────────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async (event, session) => {
+  document.getElementById("loading-screen").classList.add("hidden");
   if (session?.user) {
     currentUser = session.user;
     showDashboard();
@@ -93,6 +94,8 @@ window.handleAuth = async function () {
   infoEl.classList.add("hidden");
 
   if (isSignUp) {
+    const confirm = document.getElementById("auth-password-confirm").value;
+    if (password !== confirm) { showAuthError("비밀번호가 일치하지 않아요."); return; }
     const username = document.getElementById("auth-username").value.trim();
     if (!username) { showAuthError("아이디를 입력해주세요."); return; }
     const { data, error } = await sb.auth.signUp({ email, password });
