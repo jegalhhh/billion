@@ -272,12 +272,21 @@ async function renderDashboard() {
     hintEl.classList.add("hidden");
   }
 
+  // D+/D- + 누적 예정 저축액
+  renderProgressCard(acc, currentBalance);
+
   // 잔액 불일치 경고
   const hasUnconfirmed = txs?.some((t) => t.source === "unconfirmed");
   document.getElementById("balance-warn").classList.toggle("hidden", !hasUnconfirmed);
 
   // 거래 목록 렌더링
   renderTxList(txs || []);
+
+  // 수행건수 + 큰지출 (병렬 로드)
+  await Promise.all([
+    renderPerformance(acc, weekLabel),
+    renderExpenseList(acc),
+  ]);
 }
 
 function renderTxList(txs) {
@@ -306,6 +315,161 @@ function renderTxList(txs) {
       </div>
     </li>`;
   }).join("");
+}
+
+// ── 수행건수 ──────────────────────────────────────────────────────────────
+async function renderPerformance(acc, currentWeekLabel) {
+  const { data: rows } = await sb
+    .from("weekly_performance")
+    .select("week_label, count")
+    .eq("user_id", currentUser.id);
+
+  if (!rows) return;
+
+  const todayStr = todayKST();
+  const currentYear = todayStr.slice(0, 4);
+  const currentMonth = todayStr.slice(0, 7); // "YYYY-MM"
+
+  let weekCount = 0, monthCount = 0, yearCount = 0, totalCount = 0;
+  for (const row of rows) {
+    totalCount += row.count;
+    if (row.week_label === currentWeekLabel) weekCount += row.count;
+    // week_label 예: "2026-W23-MON" → 시작일로 역산해 연/월 비교
+    const weekStart = weekLabelToDate(row.week_label, acc.week_start_day);
+    if (weekStart) {
+      if (weekStart.startsWith(currentYear)) yearCount += row.count;
+      if (weekStart.startsWith(currentMonth)) monthCount += row.count;
+    }
+  }
+
+  document.getElementById("perf-week").textContent = weekCount;
+  document.getElementById("perf-month").textContent = monthCount;
+  document.getElementById("perf-year").textContent = yearCount;
+  document.getElementById("perf-total").textContent = totalCount;
+
+  // 이번 주 기존 입력값 채우기
+  const thisWeekRow = rows.find((r) => r.week_label === currentWeekLabel);
+  if (thisWeekRow) document.getElementById("perf-count").value = thisWeekRow.count;
+}
+
+function weekLabelToDate(weekLabel, weekStartDay) {
+  // "2026-W23-MON" 형식에서 해당 주 시작일(ISO) 추출
+  const m = weekLabel.match(/^(\d{4})-W(\d{2})/);
+  if (!m) return null;
+  const yr = parseInt(m[1]);
+  const wn = parseInt(m[2]);
+  // Jan 1 기준 해당 주 시작일 역산
+  const jan1 = new Date(yr, 0, 1);
+  const jan1dow = jan1.getDay() === 0 ? 6 : jan1.getDay() - 1;
+  const daysToFirst = (weekStartDay - jan1dow + 7) % 7;
+  const firstWeekStart = new Date(jan1);
+  firstWeekStart.setDate(1 + daysToFirst);
+  const weekStart = new Date(firstWeekStart);
+  weekStart.setDate(firstWeekStart.getDate() + (wn - 1) * 7);
+  return weekStart.toISOString().slice(0, 10);
+}
+
+window.savePerformance = async function () {
+  if (!currentAccount || !currentUser) return;
+  const count = parseInt(document.getElementById("perf-count").value) || 0;
+  const weekLabel = calcWeekLabel(todayKST(), currentAccount.week_start_day);
+
+  await sb.from("weekly_performance").upsert(
+    { user_id: currentUser.id, week_label: weekLabel, count },
+    { onConflict: "user_id,week_label" }
+  );
+  renderDashboard();
+};
+
+// ── 큰지출 ────────────────────────────────────────────────────────────────
+async function renderExpenseList(acc) {
+  const { data: rows } = await sb
+    .from("unexpected_expenses")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .order("expense_date", { ascending: false })
+    .limit(10);
+
+  const ul = document.getElementById("expense-list");
+  if (!rows || !rows.length) {
+    ul.innerHTML = `<li class="py-6 text-center"><p class="text-sm text-slate-400">내역이 없어요</p></li>`;
+    return;
+  }
+  ul.innerHTML = rows.map((r) => `
+    <li class="tx-item">
+      <div class="min-w-0 mr-3">
+        <p class="text-sm font-medium text-slate-800 truncate">${r.description || "—"}</p>
+        <p class="tx-meta">${r.expense_date}</p>
+      </div>
+      <div class="text-right shrink-0">
+        <p class="tx-amount neg">-${fmt(r.amount)}</p>
+      </div>
+    </li>`).join("");
+}
+
+window.openExpense = function () {
+  document.getElementById("expense-amount").value = "";
+  document.getElementById("expense-desc").value = "";
+  document.getElementById("expense-date").value = todayKST();
+  document.getElementById("modal-expense").classList.remove("hidden");
+};
+
+window.closeExpense = function (e) {
+  if (e.target.id === "modal-expense") document.getElementById("modal-expense").classList.add("hidden");
+};
+
+window.submitExpense = async function () {
+  if (!currentAccount || !currentUser) return;
+  const amount = parseInt(document.getElementById("expense-amount").value);
+  const description = document.getElementById("expense-desc").value.trim();
+  const expenseDate = document.getElementById("expense-date").value;
+  if (!amount || !expenseDate) return;
+
+  await sb.from("unexpected_expenses").insert({
+    user_id: currentUser.id,
+    account_id: currentAccount.id,
+    amount,
+    description,
+    expense_date: expenseDate,
+  });
+
+  document.getElementById("modal-expense").classList.add("hidden");
+  renderDashboard();
+};
+
+// ── D+/D- + 누적 예정 저축액 ──────────────────────────────────────────────
+function renderProgressCard(acc, currentBalance) {
+  const card = document.getElementById("progress-card");
+  if (!acc.start_date) { card.classList.add("hidden"); return; }
+
+  const todayStr = todayKST();
+  const today = new Date(todayStr + "T00:00:00+09:00");
+  const start = new Date(acc.start_date + "T00:00:00+09:00");
+
+  const dPlus = Math.floor((today - start) / 86400000) + 1;
+
+  const totalWeeks = acc.week_goal_amount > 0
+    ? Math.ceil(acc.final_goal_amount / acc.week_goal_amount) : 0;
+  const endDate = new Date(start);
+  endDate.setDate(start.getDate() + totalWeeks * 7);
+  const dMinus = Math.ceil((endDate - today) / 86400000);
+
+  document.getElementById("d-plus").textContent = `D+${dPlus}`;
+  document.getElementById("d-minus").textContent = dMinus > 0 ? `D-${dMinus}` : "D-Day!";
+
+  // 누적 예정 저축액: 경과 주 수 × 주간 목표
+  const elapsedDays = Math.max(dPlus - 1, 0);
+  const expectedSavings = Math.floor(elapsedDays / 7) * acc.week_goal_amount;
+  const actualSavings = currentBalance - acc.initial_balance;
+  const diff = actualSavings - expectedSavings;
+
+  const diffEl = document.getElementById("cumulative-diff");
+  const subEl = document.getElementById("cumulative-sub");
+  diffEl.textContent = (diff >= 0 ? "+" : "") + fmt(diff);
+  diffEl.className = `text-base font-bold ${diff >= 0 ? "text-blue-600" : "text-red-500"}`;
+  subEl.textContent = `예정 ${fmt(expectedSavings)} / 실제 ${fmt(actualSavings)}`;
+
+  card.classList.remove("hidden");
 }
 
 // ── 주간 네비 ──────────────────────────────────────────────────────────────
@@ -447,6 +611,7 @@ export async function initSetup() {
     document.getElementById("alias").value = acc.alias;
     document.getElementById("account-last4").value = acc.account_last4 || "";
     document.getElementById("initial-balance").value = acc.initial_balance;
+    document.getElementById("start-date").value = acc.start_date || "";
     document.getElementById("final-goal").value = acc.final_goal_amount;
     document.getElementById("week-goal").value = acc.week_goal_amount;
     document.getElementById("week-start-day").value = acc.week_start_day;
@@ -467,6 +632,7 @@ export async function saveSetup() {
   const alias = document.getElementById("alias").value.trim();
   const accountLast4 = document.getElementById("account-last4").value.trim() || null;
   const initialBalance = parseInt(document.getElementById("initial-balance").value) || 0;
+  const startDate = document.getElementById("start-date").value || null;
   const finalGoal = parseInt(document.getElementById("final-goal").value) || 0;
   const weekGoal = parseInt(document.getElementById("week-goal").value) || 0;
   const weekStartDay = parseInt(document.getElementById("week-start-day").value);
@@ -484,14 +650,14 @@ export async function saveSetup() {
   if (existing) {
     await sb.from("accounts").update({
       bank_code: bankCode, alias, account_last4: accountLast4,
-      initial_balance: initialBalance, final_goal_amount: finalGoal,
-      week_goal_amount: weekGoal, week_start_day: weekStartDay,
+      initial_balance: initialBalance, start_date: startDate,
+      final_goal_amount: finalGoal, week_goal_amount: weekGoal, week_start_day: weekStartDay,
     }).eq("id", existing.id);
   } else {
     await sb.from("accounts").insert({
       user_id: currentUser.id, bank_code: bankCode, alias, account_last4: accountLast4,
-      initial_balance: initialBalance, final_goal_amount: finalGoal,
-      week_goal_amount: weekGoal, week_start_day: weekStartDay,
+      initial_balance: initialBalance, start_date: startDate,
+      final_goal_amount: finalGoal, week_goal_amount: weekGoal, week_start_day: weekStartDay,
     });
   }
 

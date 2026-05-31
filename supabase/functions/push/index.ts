@@ -13,10 +13,11 @@ interface PushBody {
 interface ParsedTx {
   trade_date: string;    // YYYY-MM-DD
   trade_time: string;    // HH:MM
-  amount: number;        // 양수=입금, 음수=출금
+  amount: number;        // 양수=입금/출금취소, 음수=출금
   balance: number;
   counterpart: string;
   account_last4: string; // 계좌 뒷 4자리
+  type: "deposit" | "withdrawal" | "withdrawal_cancel";
 }
 
 /** 카카오뱅크 7줄 포맷 파싱 */
@@ -33,12 +34,22 @@ function parse(raw: string): ParsedTx | null {
   const trade_date = `${year}-${mm}-${dd}`;
   const trade_time = time;
 
-  // 5번째 줄: "입금 1,234원" 또는 "출금 1,234원"
-  const txMatch = lines[4].match(/^(입금|출금)\s*([\d,]+)원/);
+  // 5번째 줄: "입금 1,234원" / "출금 1,234원" / "출금취소 1,234원"
+  const txMatch = lines[4].match(/^(입금|출금취소|출금)\s*([\d,]+)원/);
   if (!txMatch) return null;
-  const isDeposit = txMatch[1] === "입금";
   const rawAmount = parseInt(txMatch[2].replace(/,/g, ""), 10);
-  const amount = isDeposit ? rawAmount : -rawAmount;
+  let amount: number;
+  let type: ParsedTx["type"];
+  if (txMatch[1] === "입금") {
+    type = "deposit";
+    amount = rawAmount;
+  } else if (txMatch[1] === "출금취소") {
+    type = "withdrawal_cancel";
+    amount = rawAmount; // 출금취소는 양수(잔액 증가)
+  } else {
+    type = "withdrawal";
+    amount = -rawAmount;
+  }
 
   // 7번째 줄: "잔액 -1,234,567원" (음수 가능)
   const balMatch = lines[6].match(/잔액\s*([-\d,]+)원/);
@@ -52,7 +63,7 @@ function parse(raw: string): ParsedTx | null {
   const last4Match = lines[2].match(/\((\d{4})\)/);
   const account_last4 = last4Match ? last4Match[1] : "";
 
-  return { trade_date, trade_time, amount, balance, counterpart, account_last4 };
+  return { trade_date, trade_time, amount, balance, counterpart, account_last4, type };
 }
 
 /** 현재 연도 KST 기준 week_label 계산 */
@@ -107,7 +118,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: false, reason: "parse_failed" }), { status: 200 });
   }
 
-  const { trade_date, trade_time, amount, balance, counterpart, account_last4 } = parsed;
+  const { trade_date, trade_time, amount, balance, counterpart, account_last4, type } = parsed;
 
   // account_last4로 계좌 매칭, 없으면 첫 번째 계좌로 fallback
   let accountQuery = supabase
@@ -177,6 +188,7 @@ Deno.serve(async (req) => {
     raw,
     week_label,
     is_confirmed: 1,
+    type,
     source: "push",
   });
 
