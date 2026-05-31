@@ -296,12 +296,35 @@ body {
 }
 .expense-trigger:active { background: var(--primary-tint); border-color: var(--primary-soft); }
 
-/* ── Display-xl (D+/D-) ────────────────────────────────────────────────── */
-.display-xl {
-  font-size: 48px;
+/* ── Header amount (현재잔액 크게) ─────────────────────────────────────── */
+.header-amount {
+  font-size: 38px;
   font-weight: 800;
-  line-height: 1.0;
+  line-height: 1.05;
   letter-spacing: -0.03em;
+  font-feature-settings: 'tnum';
+  color: #fff;
+}
+.header-amount-sub {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: -0.01em;
+}
+.header-rate-badge {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum';
+  color: var(--accent-light);
+}
+
+/* ── Display-md (D+/D- compact) ────────────────────────────────────────── */
+.display-md {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   font-feature-settings: 'tnum';
 }
 

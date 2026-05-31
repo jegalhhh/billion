@@ -66,6 +66,16 @@ function fmt(n) {
   return Number(n).toLocaleString("ko-KR") + "원";
 }
 
+function fmtShort(n) {
+  const abs = Math.abs(n);
+  if (abs >= 100000000) {
+    const v = n / 100000000;
+    return (Number.isInteger(v) ? v : v.toFixed(1)) + "억";
+  }
+  if (abs >= 10000) return Math.round(n / 10000).toLocaleString("ko-KR") + "만";
+  return n.toLocaleString("ko-KR");
+}
+
 // ── 상태 ──────────────────────────────────────────────────────────────────
 let currentUser = null;
 let currentAccount = null;
@@ -219,25 +229,29 @@ async function renderDashboard() {
   // 최종 목표 진척도
   const finalRate = acc.final_goal_amount > 0
     ? Math.min(Math.round(currentBalance / acc.final_goal_amount * 100), 100) : 0;
-  document.getElementById("final-goal-text").textContent =
-    `${fmt(currentBalance)} / ${fmt(acc.final_goal_amount)} (${finalRate}%)`;
+  document.getElementById("header-current").textContent = fmtShort(currentBalance);
+  document.getElementById("header-goal").textContent = ` / ${fmtShort(acc.final_goal_amount)}원`;
+  document.getElementById("header-rate").textContent = `${finalRate}%`;
   document.getElementById("final-bar").style.width = `${finalRate}%`;
 
   // 주간 저축
   const goal = acc.week_goal_amount;
   const rate = goal > 0 ? Math.min(Math.round(savings / goal * 100), 100) : 0;
-  const barEl = document.getElementById("week-bar");
-  barEl.style.width = `${rate}%`;
-  barEl.className = `progress-bar ${rate >= 100 ? "bar-success" : rate >= 50 ? "bar-mid" : "bar-low"}`;
 
   const savingsEl = document.getElementById("week-savings");
   savingsEl.textContent = fmt(savings);
   savingsEl.style.color = savings >= 0 ? "var(--primary)" : "var(--error)";
 
-  document.getElementById("week-goal-text").textContent = fmt(goal);
-  const rateEl = document.getElementById("week-rate");
-  rateEl.textContent = `${rate}%`;
-  rateEl.style.color = rate >= 100 ? "var(--accent-strong)" : rate >= 50 ? "var(--primary)" : "var(--warning)";
+  document.getElementById("week-goal-text").textContent = `주간 목표 ${fmt(goal)}`;
+
+  // 링 업데이트
+  const circumference = 263.9;
+  const arc = document.getElementById("week-ring-arc");
+  const pctText = document.getElementById("week-ring-pct");
+  arc.style.strokeDashoffset = circumference * (1 - Math.min(rate, 100) / 100);
+  arc.style.stroke = rate >= 100 ? "var(--accent)" : "var(--primary)";
+  pctText.textContent = `${rate}%`;
+  pctText.setAttribute("fill", rate >= 100 ? "var(--accent-strong)" : "var(--on-surface)");
   document.getElementById("week-income").textContent = `+${fmt(income)}`;
   document.getElementById("week-expense").textContent = `-${fmt(expense)}`;
 

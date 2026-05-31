@@ -86,20 +86,28 @@
 
   <!-- 헤더 -->
   <div class="app-header px-4 pb-5 pt-safe">
-    <!-- 최종 목표 -->
-    <div class="flex items-center justify-between mb-2 pt-2">
-      <span class="text-xs text-white/75">🎯 최종 목표</span>
-      <div class="flex items-center gap-2">
-        <span id="final-goal-text" class="text-xs text-white/75 font-feature-tnum"></span>
-        <a href="setup.html" class="text-white/60 hover:text-white">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-        </a>
-      </div>
+    <!-- 최종 목표 라벨 + 설정 -->
+    <div class="flex items-center justify-between pt-2 mb-1">
+      <span class="text-xs text-white/70">⊙ 최종 목표</span>
+      <a href="setup.html" class="text-white/60 hover:text-white">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </a>
     </div>
+
+    <!-- 잔액 크게 + 달성률 -->
+    <div class="flex items-end justify-between mb-2">
+      <div>
+        <span id="header-current" class="header-amount">—</span>
+        <span id="header-goal" class="header-amount-sub"> / —</span>
+      </div>
+      <span id="header-rate" class="header-rate-badge">—%</span>
+    </div>
+
+    <!-- 진행 바 -->
     <div class="progress-track h-1.5 mb-3">
       <div id="final-bar" class="progress-bar bar-final" style="width:0%"></div>
     </div>
@@ -131,12 +139,12 @@
       <div class="flex items-center justify-between mb-3">
         <div class="text-center flex-1">
           <p class="text-xs mb-1" style="color:var(--on-surface-v)">시작한 지</p>
-          <p id="d-plus" class="display-xl" style="color:var(--on-surface)">D+0</p>
+          <p id="d-plus" class="display-md" style="color:var(--on-surface)">D+0</p>
         </div>
         <div class="w-px h-14" style="background:var(--outline)"></div>
         <div class="text-center flex-1">
           <p class="text-xs mb-1" style="color:var(--on-surface-v)">목표까지</p>
-          <p id="d-minus" class="display-xl" style="color:var(--on-surface)">D-0</p>
+          <p id="d-minus" class="display-md" style="color:var(--on-surface)">D-0</p>
         </div>
       </div>
       <div class="pt-3" style="border-top:1px solid var(--outline)">
@@ -155,30 +163,39 @@
       </div>
     </div>
 
-    <!-- 주간 저축 카드 -->
+    <!-- 주간 저축 카드 (링) -->
     <div class="card card-hero">
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <p class="text-xs mb-0.5" style="color:var(--on-surface-v)">이번 주 저축</p>
-          <p id="week-savings" class="text-3xl font-extrabold tracking-tight" style="font-feature-settings:'tnum';color:var(--primary)">0원</p>
+      <div class="flex items-center gap-4">
+        <!-- 원형 링 -->
+        <div class="flex-shrink-0">
+          <svg id="week-ring-svg" viewBox="0 0 100 100" width="96" height="96">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--outline)" stroke-width="11"/>
+            <circle id="week-ring-arc" cx="50" cy="50" r="42" fill="none"
+              stroke="var(--primary)" stroke-width="11" stroke-linecap="round"
+              stroke-dasharray="263.9 263.9" stroke-dashoffset="263.9"
+              transform="rotate(-90 50 50)" style="transition:stroke-dashoffset .7s ease,stroke .4s"/>
+            <text id="week-ring-pct" x="50" y="47" text-anchor="middle"
+              font-family="Pretendard,-apple-system,sans-serif"
+              font-size="19" font-weight="800" fill="var(--on-surface)" letter-spacing="-0.5">0%</text>
+            <text x="50" y="61" text-anchor="middle"
+              font-family="Pretendard,-apple-system,sans-serif"
+              font-size="10" font-weight="500" fill="var(--on-surface-m)">달성률</text>
+          </svg>
         </div>
-        <div class="text-right">
-          <p class="text-xs mb-0.5" style="color:var(--on-surface-v)">주간 목표</p>
-          <p id="week-goal-text" class="text-sm font-bold" style="color:var(--on-surface);font-feature-settings:'tnum'">0원</p>
+        <!-- 저축 수치 -->
+        <div class="flex-1 min-w-0">
+          <p class="text-xs mb-1" style="color:var(--on-surface-v)">이번 주 저축</p>
+          <p id="week-savings" class="text-2xl font-extrabold tracking-tight leading-tight"
+             style="font-feature-settings:'tnum';color:var(--primary)">0원</p>
+          <p id="week-goal-text" class="text-xs mt-1"
+             style="color:var(--on-surface-m);font-feature-settings:'tnum'">주간 목표 0원</p>
         </div>
-      </div>
-      <div class="progress-track h-3 mb-2">
-        <div id="week-bar" class="progress-bar bar-mid" style="width:0%"></div>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-xs" style="color:var(--on-surface-m)">달성률</span>
-        <span id="week-rate" class="text-sm font-extrabold" style="color:var(--primary)">0%</span>
       </div>
       <div class="flex items-center gap-3 mt-3 pt-3" style="border-top:1px solid rgba(0,0,0,.06)">
-        <span class="text-xs" style="color:var(--on-surface-m)">수입</span>
+        <span class="text-xs" style="color:var(--on-surface-m)">● 수입</span>
         <span id="week-income" class="text-xs font-semibold" style="color:var(--success);font-feature-settings:'tnum'">+0원</span>
         <span style="color:var(--outline)">|</span>
-        <span class="text-xs" style="color:var(--on-surface-m)">지출</span>
+        <span class="text-xs" style="color:var(--on-surface-m)">● 지출</span>
         <span id="week-expense" class="text-xs font-semibold" style="color:var(--error);font-feature-settings:'tnum'">-0원</span>
       </div>
     </div>
