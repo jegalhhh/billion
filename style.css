@@ -1,41 +1,115 @@
+/* ── Design tokens ─────────────────────────────────────────────────────── */
 :root {
-  --brand: #0ea5e9;
-  --brand-dark: #0284c7;
+  --primary:          #0e8c63;
+  --primary-strong:   #0a5f44;
+  --primary-soft:     #bfe3d2;
+  --primary-tint:     #eafaf3;
+  --accent:           #e0a93c;
+  --accent-strong:    #b07d12;
+  --accent-light:     #f6cf6e;
+  --accent-soft:      #fbf2dc;
+  --bg:               #e9ece6;
+  --surface:          rgba(255,255,255,0.58);
+  --surface-border:   rgba(255,255,255,0.70);
+  --surface-solid:    #ffffff;
+  --on-surface:       #0f1f18;
+  --on-surface-v:     #64748b;
+  --on-surface-m:     #94a3a0;
+  --outline:          #e2e6e3;
+  --scrim:            rgba(15,30,22,0.45);
+  --success:          #16a34a;
+  --error:            #ef4444;
+  --warning:          #d98a1f;
+  --positive:         #2563eb;
 }
 
-* { box-sizing: border-box; }
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Body ──────────────────────────────────────────────────────────────── */
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--on-surface);
   min-height: 100dvh;
+  word-break: keep-all;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── 공통 ── */
+/* ── Ambient blobs ─────────────────────────────────────────────────────── */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.55;
+}
+.blob-gold {
+  width: 340px; height: 340px;
+  background: radial-gradient(circle, #f6cf6e 0%, #e0a93c 60%, transparent 100%);
+  top: -80px; right: -60px;
+}
+.blob-emerald {
+  width: 380px; height: 380px;
+  background: radial-gradient(circle, #bfe3d2 0%, #0e8c63 60%, transparent 100%);
+  top: 30%; left: -100px;
+  opacity: 0.38;
+}
+.blob-cool {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, #d4ddd8 0%, #94a3a0 80%, transparent 100%);
+  bottom: -60px; right: -40px;
+  opacity: 0.32;
+}
+
+/* ── Utility ───────────────────────────────────────────────────────────── */
 .hidden { display: none !important; }
 
-input, select, button {
-  font-family: inherit;
-  font-size: 1rem;
+/* ── App header ────────────────────────────────────────────────────────── */
+.app-header {
+  position: relative;
+  background: linear-gradient(145deg, var(--primary) 0%, var(--primary-strong) 100%);
+  color: #fff;
+  overflow: hidden;
+  z-index: 10;
+}
+.app-header::after {
+  content: '₩';
+  position: absolute;
+  top: -10px; right: 12px;
+  font-size: 120px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.07);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
-/* ── 헤더/브랜드 배경 ── */
-.bg-brand { background: var(--brand); }
-
-/* ── 카드 ── */
+/* ── Glass card ────────────────────────────────────────────────────────── */
 .card {
-  background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,.08);
-  padding: 1.25rem;
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
+  border: 1px solid var(--surface-border);
+  border-radius: 20px;
+  box-shadow: 0 12px 36px -12px rgba(16,40,28,.22);
+  padding: 20px;
+  z-index: 10;
 }
+.card-hero { border-radius: 22px; }
 
-/* ── 프로그레스 바 ── */
+/* ── Progress ──────────────────────────────────────────────────────────── */
 .progress-track {
   width: 100%;
-  background: #e2e8f0;
+  background: var(--outline);
   border-radius: 9999px;
   overflow: hidden;
 }
@@ -44,110 +118,216 @@ input, select, button {
   border-radius: 9999px;
   transition: width .7s ease;
 }
+.bar-success { background: var(--primary); }
+.bar-mid     { background: var(--primary); }
+.bar-low     { background: var(--accent); }
+.bar-final   { background: rgba(255,255,255,0.9); }
 
-/* ── 배너 ── */
+/* ── Banners ───────────────────────────────────────────────────────────── */
 .banner {
-  border-radius: 1rem;
+  border-radius: 16px;
   padding: .75rem 1rem;
   display: flex;
   align-items: center;
   gap: .75rem;
 }
-.banner-warn { background: #fef3c7; border: 1px solid #fde68a; }
-.banner-success { background: #ecfdf5; border: 1px solid #a7f3d0; }
+.banner-warn    { background: #fef6e7; border: 1px solid rgba(217,138,31,.25); }
+.banner-success { background: var(--accent-soft); border: 1px solid rgba(224,169,60,.30); }
 
-/* ── 거래 리스트 ── */
-.tx-list { list-style: none; margin: 0; padding: 0; }
+/* ── Transaction list ──────────────────────────────────────────────────── */
+.tx-list { list-style: none; }
 .tx-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: .75rem 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  cursor: pointer;
+  padding: .75rem 1.125rem;
+  border-bottom: 1px solid rgba(0,0,0,.045);
   transition: background .15s;
 }
 .tx-item:last-child { border-bottom: none; }
-.tx-item:active { background: #f8fafc; }
-.tx-item.unconfirmed { background: #fffbeb; }
+.tx-item:active { background: rgba(14,140,99,.05); }
+.tx-item.unconfirmed { background: #fffaf0; cursor: pointer; }
+.tx-item.cancelled   { background: transparent; }
 
-.tx-meta { font-size: .75rem; color: #94a3b8; margin-top: .125rem; }
-.tx-amount { font-size: .9rem; font-weight: 600; }
-.tx-amount.pos { color: #059669; }
-.tx-amount.neg { color: #ef4444; }
-.tx-balance { font-size: .75rem; color: #94a3b8; text-align: right; }
+.tx-meta    { font-size: .72rem; color: var(--on-surface-m); margin-top: .1rem;
+              font-feature-settings: 'tnum'; }
+.tx-amount  { font-size: .9rem; font-weight: 700; font-feature-settings: 'tnum'; }
+.tx-amount.pos { color: var(--success); }
+.tx-amount.neg { color: var(--error); }
+.tx-amount.cancelled-amt { color: var(--on-surface-m); }
+.tx-balance { font-size: .72rem; color: var(--on-surface-m); text-align: right;
+              font-feature-settings: 'tnum'; }
+.tx-caption { font-size: .68rem; color: var(--warning); font-weight: 600; text-align: right; }
 
-/* ── 모달 ── */
+/* ── Modal ─────────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
+  background: var(--scrim);
   display: flex; align-items: flex-end;
-  z-index: 100;
+  z-index: 200;
 }
 .modal-sheet {
-  background: #fff;
-  border-radius: 1.5rem 1.5rem 0 0;
-  padding: 1.5rem 1.25rem;
+  background: var(--surface-solid);
+  border-radius: 26px 26px 0 0;
+  padding: 12px 20px 32px;
   width: 100%;
-  max-height: 80dvh;
+  max-height: 82dvh;
   overflow-y: auto;
 }
-
-/* ── 입력 필드 ── */
-.field { display: flex; flex-direction: column; gap: .375rem; }
-.field label { font-size: .8rem; color: #64748b; font-weight: 500; }
-.field input, .field select {
-  border: 1px solid #cbd5e1;
-  border-radius: .625rem;
-  padding: .625rem .75rem;
-  outline: none;
-  transition: border-color .15s;
+.modal-grabber {
+  width: 36px; height: 4px;
+  background: var(--outline);
+  border-radius: 9999px;
+  margin: 0 auto 20px;
 }
-.field input:focus, .field select:focus { border-color: var(--brand); }
 
-/* ── 버튼 ── */
+/* ── Form fields ───────────────────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: .375rem; }
+.field label {
+  font-size: .78rem;
+  color: var(--on-surface-v);
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.field input, .field select {
+  border: 1.5px solid var(--outline);
+  border-radius: 13px;
+  padding: .7rem .875rem;
+  background: var(--surface-solid);
+  color: var(--on-surface);
+  font-family: inherit;
+  font-size: .95rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(14,140,99,.16);
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
 .btn-primary {
   width: 100%;
-  background: var(--brand);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
   color: #fff;
   border: none;
-  border-radius: .875rem;
-  height: 3.25rem;
+  border-radius: 16px;
+  height: 54px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: background .15s, transform .1s;
+  letter-spacing: -.01em;
+  box-shadow: 0 4px 16px rgba(14,140,99,.28);
+  transition: transform .1s, box-shadow .1s;
   display: flex; align-items: center; justify-content: center; gap: .5rem;
 }
-.btn-primary:hover { background: var(--brand-dark); }
-.btn-primary:active { transform: scale(.97); }
-.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.btn-primary:active { transform: scale(.975); box-shadow: 0 2px 8px rgba(14,140,99,.20); }
+.btn-primary:disabled { opacity: .55; cursor: not-allowed; }
 
 .btn-ghost {
   background: none; border: none;
-  color: var(--brand);
-  font-size: .9rem; font-weight: 500;
-  cursor: pointer; padding: .25rem;
+  color: var(--primary);
+  font-size: .9rem; font-weight: 600;
+  font-family: inherit;
+  cursor: pointer; padding: .25rem .5rem;
 }
 
-/* ── 하단 고정 ── */
+/* ── Stepper (수행건수) ─────────────────────────────────────────────────── */
+.stepper {
+  display: flex;
+  align-items: stretch;
+  background: var(--surface-solid);
+  border: 1.5px solid var(--outline);
+  border-radius: 13px;
+  height: 52px;
+  overflow: hidden;
+}
+.stepper-btn {
+  width: 44px;
+  background: var(--primary-tint);
+  color: var(--primary-strong);
+  border: none;
+  font-size: 1.375rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .12s;
+  flex-shrink: 0;
+}
+.stepper-btn:active { background: var(--primary-soft); }
+.stepper-val {
+  flex: 1;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  font-feature-settings: 'tnum';
+  color: var(--on-surface);
+  line-height: 52px;
+  letter-spacing: -.01em;
+}
+
+/* ── Expense trigger ───────────────────────────────────────────────────── */
+.expense-trigger {
+  width: 100%;
+  height: 50px;
+  border: 1.5px dashed var(--outline);
+  background: var(--surface);
+  border-radius: 16px;
+  color: var(--on-surface-v);
+  font-size: .9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color .15s, background .15s;
+}
+.expense-trigger:active { background: var(--primary-tint); border-color: var(--primary-soft); }
+
+/* ── Display-xl (D+/D-) ────────────────────────────────────────────────── */
+.display-xl {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  font-feature-settings: 'tnum';
+}
+
+/* ── Bottom bar ────────────────────────────────────────────────────────── */
 .bottom-bar {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: rgba(255,255,255,.92);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid #e2e8f0;
+  background: rgba(233,236,230,.88);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-top: 1px solid var(--surface-border);
   padding: .75rem 1rem env(safe-area-inset-bottom, .75rem);
   z-index: 50;
 }
 
-/* ── 로그인 화면 ── */
+/* ── Auth screen ───────────────────────────────────────────────────────── */
 #auth-screen {
+  position: relative;
   min-height: 100dvh;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   padding: 2rem 1.5rem;
+  z-index: 10;
 }
 #auth-screen .logo {
-  width: 72px; height: 72px; border-radius: 1rem;
+  width: 72px; height: 72px;
+  border-radius: 18px;
   margin-bottom: 1.5rem;
+  box-shadow: 0 8px 24px rgba(14,140,99,.25);
 }

@@ -228,15 +228,16 @@ async function renderDashboard() {
   const rate = goal > 0 ? Math.min(Math.round(savings / goal * 100), 100) : 0;
   const barEl = document.getElementById("week-bar");
   barEl.style.width = `${rate}%`;
-  barEl.className = `progress-bar ${rate >= 100 ? "bg-emerald-500" : rate >= 50 ? "bg-sky-500" : "bg-amber-400"}`;
+  barEl.className = `progress-bar ${rate >= 100 ? "bar-success" : rate >= 50 ? "bar-mid" : "bar-low"}`;
 
-  document.getElementById("week-savings").textContent = fmt(savings);
-  document.getElementById("week-savings").className =
-    `text-2xl font-bold ${savings >= 0 ? "text-sky-600" : "text-red-500"}`;
+  const savingsEl = document.getElementById("week-savings");
+  savingsEl.textContent = fmt(savings);
+  savingsEl.style.color = savings >= 0 ? "var(--primary)" : "var(--error)";
+
   document.getElementById("week-goal-text").textContent = fmt(goal);
-  document.getElementById("week-rate").textContent = `${rate}%`;
-  document.getElementById("week-rate").className =
-    `text-sm font-bold ${rate >= 100 ? "text-emerald-600" : rate >= 50 ? "text-sky-600" : "text-amber-500"}`;
+  const rateEl = document.getElementById("week-rate");
+  rateEl.textContent = `${rate}%`;
+  rateEl.style.color = rate >= 100 ? "var(--accent-strong)" : rate >= 50 ? "var(--primary)" : "var(--warning)";
   document.getElementById("week-income").textContent = `+${fmt(income)}`;
   document.getElementById("week-expense").textContent = `-${fmt(expense)}`;
 
@@ -249,11 +250,11 @@ async function renderDashboard() {
         <div class="banner banner-success">
           <span class="text-2xl">🎉</span>
           <div>
-            <p class="text-xs font-semibold text-emerald-700">이번 주 목표 달성!</p>
+            <p class="text-xs font-bold" style="color:var(--accent-strong)">이번 주 목표 달성!</p>
             ${hint.dailySpendable > 0
-              ? `<p class="text-sm font-bold text-emerald-700">하루 ${fmt(hint.dailySpendable)}까지 써도 돼요</p>
-                 <p class="text-xs text-emerald-500 mt-0.5">남은 ${hint.remainingDays}일 기준</p>`
-              : `<p class="text-sm text-emerald-700">남은 ${hint.remainingDays}일도 아껴써요</p>`}
+              ? `<p class="text-sm font-extrabold" style="color:var(--accent-strong);font-feature-settings:'tnum'">하루 ${fmt(hint.dailySpendable)}까지 써도 돼요</p>
+                 <p class="text-xs mt-0.5" style="color:var(--accent-strong);opacity:.7">남은 ${hint.remainingDays}일 기준</p>`
+              : `<p class="text-sm" style="color:var(--accent-strong)">남은 ${hint.remainingDays}일도 아껴써요</p>`}
           </div>
         </div>`;
     } else {
@@ -261,9 +262,9 @@ async function renderDashboard() {
         <div class="banner banner-warn">
           <span class="text-2xl">📊</span>
           <div>
-            <p class="text-xs text-amber-600">남은 ${hint.remainingDays}일 동안 하루 평균</p>
-            <p class="text-base font-bold text-amber-800">${fmt(hint.dailyAmount)} 저축</p>
-            <p class="text-xs text-amber-500 mt-0.5">하면 이번 주 목표를 달성할 수 있어요</p>
+            <p class="text-xs" style="color:var(--warning)">남은 ${hint.remainingDays}일 동안 하루 평균</p>
+            <p class="text-base font-extrabold" style="color:var(--warning);font-feature-settings:'tnum'">${fmt(hint.dailyAmount)} 저축</p>
+            <p class="text-xs mt-0.5" style="color:var(--warning);opacity:.75">하면 이번 주 목표를 달성할 수 있어요</p>
           </div>
         </div>`;
     }
@@ -300,18 +301,24 @@ function renderTxList(txs) {
   }
   ul.innerHTML = txs.map((tx) => {
     const isUnconfirmed = tx.is_confirmed === 0;
+    const isCancelled = tx.type === "withdrawal_cancel";
     const sign = tx.amount >= 0 ? "+" : "";
-    return `<li class="tx-item${isUnconfirmed ? " unconfirmed" : ""}"
+    let amtClass = tx.amount >= 0 ? "pos" : "neg";
+    if (isCancelled) amtClass = "cancelled-amt";
+    const extraClass = isUnconfirmed ? " unconfirmed" : isCancelled ? " cancelled" : "";
+    return `<li class="tx-item${extraClass}"
                 onclick="${isUnconfirmed ? `openUnconfirmed('${tx.id}', ${Math.abs(tx.amount)}, '${tx.counterpart}', '${tx.trade_date}', '${tx.trade_time}', ${tx.amount > 0 ? 1 : -1})` : ""}">
       <div class="min-w-0 mr-3">
-        <p class="text-sm font-medium text-slate-800 truncate">
+        <p class="text-sm font-semibold truncate" style="color:var(--on-surface)">
           ${isUnconfirmed ? "⚠️ " : ""}${tx.counterpart || tx.description || "—"}
         </p>
         <p class="tx-meta">${tx.trade_date} ${tx.trade_time?.slice(0,5) || ""}</p>
       </div>
       <div class="text-right shrink-0">
-        <p class="tx-amount ${tx.amount >= 0 ? "pos" : "neg"}">${sign}${fmt(tx.amount)}</p>
-        <p class="tx-balance">잔액 ${fmt(tx.balance)}</p>
+        <p class="tx-amount ${amtClass}">${sign}${fmt(tx.amount)}</p>
+        ${isCancelled
+          ? `<p class="tx-caption">취소</p>`
+          : `<p class="tx-balance">잔액 ${fmt(tx.balance)}</p>`}
       </div>
     </li>`;
   }).join("");
@@ -349,7 +356,7 @@ async function renderPerformance(acc, currentWeekLabel) {
 
   // 이번 주 기존 입력값 채우기
   const thisWeekRow = rows.find((r) => r.week_label === currentWeekLabel);
-  if (thisWeekRow) document.getElementById("perf-count").value = thisWeekRow.count;
+  document.getElementById("perf-count").textContent = thisWeekRow ? thisWeekRow.count : 0;
 }
 
 function weekLabelToDate(weekLabel, weekStartDay) {
@@ -369,9 +376,15 @@ function weekLabelToDate(weekLabel, weekStartDay) {
   return weekStart.toISOString().slice(0, 10);
 }
 
+window.stepPerf = function (delta) {
+  const el = document.getElementById("perf-count");
+  const cur = parseInt(el.textContent) || 0;
+  el.textContent = Math.max(0, cur + delta);
+};
+
 window.savePerformance = async function () {
   if (!currentAccount || !currentUser) return;
-  const count = parseInt(document.getElementById("perf-count").value) || 0;
+  const count = parseInt(document.getElementById("perf-count").textContent) || 0;
   const weekLabel = calcWeekLabel(todayKST(), currentAccount.week_start_day);
 
   await sb.from("weekly_performance").upsert(
@@ -466,7 +479,7 @@ function renderProgressCard(acc, currentBalance) {
   const diffEl = document.getElementById("cumulative-diff");
   const subEl = document.getElementById("cumulative-sub");
   diffEl.textContent = (diff >= 0 ? "+" : "") + fmt(diff);
-  diffEl.className = `text-base font-bold ${diff >= 0 ? "text-blue-600" : "text-red-500"}`;
+  diffEl.style.color = diff >= 0 ? "var(--positive)" : "var(--error)";
   subEl.textContent = `예정 ${fmt(expectedSavings)} / 실제 ${fmt(actualSavings)}`;
 
   card.classList.remove("hidden");

@@ -4,30 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>1억 만들기 — 설정</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { extend: { colors: { brand: '#0ea5e9', 'brand-dark': '#0284c7' } } }
+      theme: {
+        extend: {
+          colors: {
+            primary:         '#0e8c63',
+            'primary-strong':'#0a5f44',
+            'primary-tint':  '#eafaf3',
+          }
+        }
+      }
     }
   </script>
 </head>
-<body class="bg-slate-50">
+<body>
 
-<div class="px-4 pt-6 pb-32 max-w-lg mx-auto space-y-5">
+<!-- ambient field -->
+<div class="ambient" aria-hidden="true">
+  <div class="blob blob-gold"></div>
+  <div class="blob blob-emerald"></div>
+  <div class="blob blob-cool"></div>
+</div>
+
+<div class="px-4 pt-6 pb-32 max-w-lg mx-auto space-y-4" style="position:relative;z-index:10">
+
   <!-- 헤더 -->
   <div class="flex items-center gap-3">
-    <a href="index.html" class="text-slate-400 hover:text-slate-600">
+    <a href="index.html" style="color:var(--on-surface-m)">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
     </a>
-    <h1 class="text-lg font-bold text-slate-800">계좌 · 목표 설정</h1>
+    <h1 class="text-lg font-extrabold tracking-tight" style="color:var(--on-surface)">계좌 · 목표 설정</h1>
   </div>
 
   <!-- 계좌 정보 -->
   <div class="card space-y-4">
-    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide">계좌 정보</h2>
+    <h2 class="text-xs font-extrabold uppercase tracking-widest" style="color:var(--on-surface-v)">계좌 정보</h2>
     <div class="field">
       <label>은행</label>
       <select id="bank-code">
@@ -56,10 +73,10 @@
 
   <!-- 저축 목표 -->
   <div class="card space-y-4">
-    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide">저축 목표</h2>
+    <h2 class="text-xs font-extrabold uppercase tracking-widest" style="color:var(--on-surface-v)">저축 목표</h2>
     <div class="field">
       <label>저축 시작일</label>
-      <input id="start-date" type="date" placeholder="예: 2026-01-01">
+      <input id="start-date" type="date">
     </div>
     <div class="field">
       <label>최종 목표 금액 (원)</label>
@@ -84,18 +101,18 @@
   </div>
 
   <!-- iOS 단축어 안내 -->
-  <div class="card bg-sky-50 border border-sky-100 space-y-2">
-    <h2 class="text-sm font-semibold text-sky-700">📱 iOS 단축어 sender 이름</h2>
-    <p class="text-xs text-sky-600">아이디(username)를 단축어에 입력하면 알림이 자동으로 연결됩니다.</p>
+  <div class="card space-y-2" style="background:var(--primary-tint);border-color:var(--primary-soft)">
+    <h2 class="text-sm font-bold" style="color:var(--primary-strong)">📱 iOS 단축어 sender 이름</h2>
+    <p class="text-xs" style="color:var(--primary)">아이디(username)를 단축어에 입력하면 알림이 자동으로 연결됩니다.</p>
     <div class="field">
-      <label class="text-sky-700">아이디 (username)</label>
-      <input id="setup-username" type="text" placeholder="예: 민혁" class="border-sky-200">
+      <label style="color:var(--primary-strong)">아이디 (username)</label>
+      <input id="setup-username" type="text" placeholder="예: 민혁">
     </div>
-    <p class="text-xs text-sky-400">* 최초 1회 설정 후 변경 불필요 — 단축어에 동일하게 입력하세요.</p>
+    <p class="text-xs" style="color:var(--on-surface-m)">* 최초 1회 설정 후 변경 불필요 — 단축어에 동일하게 입력하세요.</p>
   </div>
 
   <p id="setup-error" class="text-xs text-red-500 hidden"></p>
-  <p id="setup-success" class="text-xs text-emerald-600 hidden"></p>
+  <p id="setup-success" class="text-xs hidden" style="color:var(--primary)"></p>
 </div>
 
 <!-- 하단 저장 버튼 -->

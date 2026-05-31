@@ -4,21 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>1억 만들기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="style.css">
   <link rel="apple-touch-icon" href="static/logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { extend: { colors: { brand: '#0ea5e9', 'brand-dark': '#0284c7' } } }
+      theme: {
+        extend: {
+          colors: {
+            primary:        '#0e8c63',
+            'primary-strong':'#0a5f44',
+            'primary-tint': '#eafaf3',
+            accent:         '#e0a93c',
+            'accent-strong':'#b07d12',
+            positive:       '#2563eb',
+          }
+        }
+      }
     }
   </script>
 </head>
-<body class="bg-slate-50">
+<body>
+
+<!-- ambient field -->
+<div class="ambient" aria-hidden="true">
+  <div class="blob blob-gold"></div>
+  <div class="blob blob-emerald"></div>
+  <div class="blob blob-cool"></div>
+</div>
 
 <!-- ── 로딩 화면 ── -->
 <div id="loading-screen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
   <img src="static/logo.png" alt="로고" class="w-16 h-16 rounded-2xl mb-5">
-  <svg class="w-7 h-7 animate-spin text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+  <svg class="w-7 h-7 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
   </svg>
@@ -27,8 +46,8 @@
 <!-- ── 로그인 화면 ── -->
 <div id="auth-screen">
   <img src="static/logo.png" alt="로고" class="logo">
-  <h1 class="text-2xl font-bold text-slate-800 mb-1">1억 만들기</h1>
-  <p class="text-sm text-slate-500 mb-8">주간 저축 목표 달성 트래커</p>
+  <h1 class="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">1억 만들기</h1>
+  <p class="text-sm mb-8" style="color:var(--on-surface-v)">주간 저축 목표 달성 트래커</p>
 
   <div class="w-full max-w-sm space-y-3">
     <div class="field">
@@ -55,24 +74,24 @@
       <button class="btn-ghost text-sm" onclick="toggleMode()">
         <span id="toggle-label">회원가입</span>
       </button>
-      <span class="text-slate-300">|</span>
+      <span style="color:var(--outline)">|</span>
       <button class="btn-ghost text-sm" onclick="forgotPassword()">비밀번호 찾기</button>
     </div>
-    <p id="auth-info" class="text-xs text-center text-emerald-600 hidden"></p>
+    <p id="auth-info" class="text-xs text-center hidden" style="color:var(--primary)"></p>
   </div>
 </div>
 
 <!-- ── 대시보드 ── -->
-<div id="dashboard" class="hidden pb-32">
+<div id="dashboard" class="hidden pb-32" style="position:relative;z-index:10">
 
   <!-- 헤더 -->
-  <div class="bg-brand text-white px-4 pb-5 pt-safe">
+  <div class="app-header px-4 pb-5 pt-safe">
     <!-- 최종 목표 -->
     <div class="flex items-center justify-between mb-2 pt-2">
-      <span class="text-xs text-white/80">🎯 최종 목표</span>
+      <span class="text-xs text-white/75">🎯 최종 목표</span>
       <div class="flex items-center gap-2">
-        <span id="final-goal-text" class="text-xs text-white/80"></span>
-        <a href="setup.html" class="text-white/70 hover:text-white">
+        <span id="final-goal-text" class="text-xs text-white/75 font-feature-tnum"></span>
+        <a href="setup.html" class="text-white/60 hover:text-white">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -82,7 +101,7 @@
       </div>
     </div>
     <div class="progress-track h-1.5 mb-3">
-      <div id="final-bar" class="progress-bar bg-white" style="width:0%"></div>
+      <div id="final-bar" class="progress-bar bar-final" style="width:0%"></div>
     </div>
 
     <!-- 주간 네비 -->
@@ -93,8 +112,8 @@
         </svg>
       </button>
       <div class="text-center">
-        <p id="week-range" class="text-sm font-semibold"></p>
-        <p id="week-label-text" class="text-xs text-white/70 mt-0.5"></p>
+        <p id="week-range" class="text-sm font-bold text-white"></p>
+        <p id="week-label-text" class="text-xs text-white/65 mt-0.5"></p>
       </div>
       <button id="next-week-btn" onclick="nextWeek()" class="p-2 rounded-full hover:bg-white/20 active:bg-white/30 transition text-white/80">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,19 +130,19 @@
     <div id="progress-card" class="card hidden">
       <div class="flex items-center justify-between mb-3">
         <div class="text-center flex-1">
-          <p class="text-xs text-slate-400 mb-0.5">시작한 지</p>
-          <p id="d-plus" class="text-2xl font-bold text-slate-700">D+0</p>
+          <p class="text-xs mb-1" style="color:var(--on-surface-v)">시작한 지</p>
+          <p id="d-plus" class="display-xl" style="color:var(--on-surface)">D+0</p>
         </div>
-        <div class="w-px h-10 bg-slate-100"></div>
+        <div class="w-px h-14" style="background:var(--outline)"></div>
         <div class="text-center flex-1">
-          <p class="text-xs text-slate-400 mb-0.5">목표까지</p>
-          <p id="d-minus" class="text-2xl font-bold text-slate-700">D-0</p>
+          <p class="text-xs mb-1" style="color:var(--on-surface-v)">목표까지</p>
+          <p id="d-minus" class="display-xl" style="color:var(--on-surface)">D-0</p>
         </div>
       </div>
-      <div class="pt-3 border-t border-slate-50">
-        <p class="text-xs text-slate-400 mb-1">오늘까지 누적 예정 대비</p>
-        <p id="cumulative-diff" class="text-base font-bold">—</p>
-        <p id="cumulative-sub" class="text-xs text-slate-400 mt-0.5"></p>
+      <div class="pt-3" style="border-top:1px solid var(--outline)">
+        <p class="text-xs mb-1" style="color:var(--on-surface-v)">오늘까지 누적 예정 대비</p>
+        <p id="cumulative-diff" class="text-base font-extrabold" style="font-feature-settings:'tnum'">—</p>
+        <p id="cumulative-sub" class="text-xs mt-0.5" style="color:var(--on-surface-m);font-feature-settings:'tnum'"></p>
       </div>
     </div>
 
@@ -131,36 +150,36 @@
     <div id="balance-warn" class="hidden banner banner-warn">
       <span class="text-xl">⚠️</span>
       <div>
-        <p class="text-xs font-semibold text-amber-700">잔액 불일치 감지</p>
-        <p class="text-xs text-amber-600">미확인 내역을 확인해주세요.</p>
+        <p class="text-xs font-bold" style="color:var(--warning)">잔액 불일치 감지</p>
+        <p class="text-xs" style="color:var(--warning)">미확인 내역을 확인해주세요.</p>
       </div>
     </div>
 
     <!-- 주간 저축 카드 -->
-    <div class="card">
+    <div class="card card-hero">
       <div class="flex items-center justify-between mb-3">
         <div>
-          <p class="text-xs text-slate-500 mb-0.5">이번 주 저축</p>
-          <p id="week-savings" class="text-2xl font-bold text-sky-600">0원</p>
+          <p class="text-xs mb-0.5" style="color:var(--on-surface-v)">이번 주 저축</p>
+          <p id="week-savings" class="text-3xl font-extrabold tracking-tight" style="font-feature-settings:'tnum';color:var(--primary)">0원</p>
         </div>
         <div class="text-right">
-          <p class="text-xs text-slate-500 mb-0.5">주간 목표</p>
-          <p id="week-goal-text" class="text-sm font-semibold text-slate-700">0원</p>
+          <p class="text-xs mb-0.5" style="color:var(--on-surface-v)">주간 목표</p>
+          <p id="week-goal-text" class="text-sm font-bold" style="color:var(--on-surface);font-feature-settings:'tnum'">0원</p>
         </div>
       </div>
       <div class="progress-track h-3 mb-2">
-        <div id="week-bar" class="progress-bar bg-sky-500" style="width:0%"></div>
+        <div id="week-bar" class="progress-bar bar-mid" style="width:0%"></div>
       </div>
       <div class="flex items-center justify-between">
-        <span class="text-xs text-slate-400">달성률</span>
-        <span id="week-rate" class="text-sm font-bold text-sky-600">0%</span>
+        <span class="text-xs" style="color:var(--on-surface-m)">달성률</span>
+        <span id="week-rate" class="text-sm font-extrabold" style="color:var(--primary)">0%</span>
       </div>
-      <div class="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50">
-        <span class="text-xs text-slate-400">수입</span>
-        <span id="week-income" class="text-xs font-medium text-emerald-600">+0원</span>
-        <span class="text-slate-200">|</span>
-        <span class="text-xs text-slate-400">지출</span>
-        <span id="week-expense" class="text-xs font-medium text-red-400">-0원</span>
+      <div class="flex items-center gap-3 mt-3 pt-3" style="border-top:1px solid rgba(0,0,0,.06)">
+        <span class="text-xs" style="color:var(--on-surface-m)">수입</span>
+        <span id="week-income" class="text-xs font-semibold" style="color:var(--success);font-feature-settings:'tnum'">+0원</span>
+        <span style="color:var(--outline)">|</span>
+        <span class="text-xs" style="color:var(--on-surface-m)">지출</span>
+        <span id="week-expense" class="text-xs font-semibold" style="color:var(--error);font-feature-settings:'tnum'">-0원</span>
       </div>
     </div>
 
@@ -170,71 +189,71 @@
     <!-- 수행건수 카드 -->
     <div class="card space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-slate-700">수행건수</h2>
-        <div class="flex items-center gap-2">
-          <input id="perf-count" type="number" min="0" placeholder="0"
-            class="w-16 text-center border border-slate-200 rounded-lg py-1 text-sm font-bold text-slate-800">
-          <button onclick="savePerformance()" class="text-xs text-brand font-medium px-2 py-1 rounded-lg border border-brand/30">저장</button>
-        </div>
+        <h2 class="text-sm font-bold" style="color:var(--on-surface)">수행건수</h2>
+        <button onclick="savePerformance()" class="text-xs font-semibold px-3 py-1 rounded-lg" style="background:var(--primary-tint);color:var(--primary-strong)">저장</button>
       </div>
-      <div class="grid grid-cols-4 gap-2 text-center">
+      <div class="stepper">
+        <button class="stepper-btn" onclick="stepPerf(-1)">−</button>
+        <span id="perf-count" class="stepper-val">0</span>
+        <button class="stepper-btn" onclick="stepPerf(1)">+</button>
+      </div>
+      <div class="grid grid-cols-4 gap-2 text-center pt-1">
         <div>
-          <p class="text-xs text-slate-400">이번 주</p>
-          <p id="perf-week" class="text-sm font-bold text-slate-700">—</p>
+          <p class="text-xs mb-0.5" style="color:var(--on-surface-m)">이번 주</p>
+          <p id="perf-week" class="text-sm font-extrabold" style="color:var(--on-surface)">—</p>
         </div>
         <div>
-          <p class="text-xs text-slate-400">이번 달</p>
-          <p id="perf-month" class="text-sm font-bold text-slate-700">—</p>
+          <p class="text-xs mb-0.5" style="color:var(--on-surface-m)">이번 달</p>
+          <p id="perf-month" class="text-sm font-extrabold" style="color:var(--on-surface)">—</p>
         </div>
         <div>
-          <p class="text-xs text-slate-400">올해</p>
-          <p id="perf-year" class="text-sm font-bold text-slate-700">—</p>
+          <p class="text-xs mb-0.5" style="color:var(--on-surface-m)">올해</p>
+          <p id="perf-year" class="text-sm font-extrabold" style="color:var(--on-surface)">—</p>
         </div>
         <div>
-          <p class="text-xs text-slate-400">누적</p>
-          <p id="perf-total" class="text-sm font-bold text-slate-700">—</p>
+          <p class="text-xs mb-0.5" style="color:var(--on-surface-m)">누적</p>
+          <p id="perf-total" class="text-sm font-extrabold" style="color:var(--on-surface)">—</p>
         </div>
       </div>
     </div>
 
-    <!-- 뜻밖의 큰지출 카드 -->
+    <!-- 뜻밖의 큰지출 -->
     <div class="card overflow-hidden !p-0">
-      <div class="px-4 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-slate-700">뜻밖의 큰지출</h2>
-        <button onclick="openExpense()" class="text-xs text-brand font-medium">+ 추가</button>
+      <div class="px-4 pt-4 pb-2 flex items-center justify-between" style="border-bottom:1px solid rgba(0,0,0,.06)">
+        <h2 class="text-sm font-bold" style="color:var(--on-surface)">뜻밖의 큰지출</h2>
       </div>
-      <ul id="expense-list" class="tx-list">
-        <li class="py-6 text-center">
-          <p class="text-sm text-slate-400">내역이 없어요</p>
-        </li>
-      </ul>
+      <div class="px-4 py-3">
+        <button class="expense-trigger" onclick="openExpense()">＋ 큰 지출 입력</button>
+      </div>
+      <ul id="expense-list" class="tx-list"></ul>
     </div>
 
     <!-- 거래 내역 -->
     <div class="card overflow-hidden !p-0">
-      <div class="px-4 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between">
-        <h2 id="tx-list-title" class="text-sm font-semibold text-slate-700"></h2>
-        <button onclick="openManual()" class="text-xs text-brand font-medium">+ 직접 입력</button>
+      <div class="px-4 pt-4 pb-2 flex items-center justify-between" style="border-bottom:1px solid rgba(0,0,0,.06)">
+        <h2 id="tx-list-title" class="text-sm font-bold" style="color:var(--on-surface)"></h2>
+        <button onclick="openManual()" class="text-xs font-semibold" style="color:var(--primary)">+ 직접 입력</button>
       </div>
       <ul id="tx-list" class="tx-list">
         <li class="py-12 text-center">
           <p class="text-4xl mb-3">📭</p>
-          <p class="text-sm text-slate-400">거래 내역이 없어요</p>
+          <p class="text-sm" style="color:var(--on-surface-m)">거래 내역이 없어요</p>
         </li>
       </ul>
     </div>
   </div>
 </div>
 
-<!-- ── 하단 바 (로그아웃) ── -->
+<!-- ── 하단 바 ── -->
 <div id="bottom-bar" class="bottom-bar hidden">
-  <button onclick="signOut()" class="w-full h-14 btn-primary">로그아웃</button>
+  <button onclick="signOut()" class="btn-primary">로그아웃</button>
 </div>
 
 <!-- ── 미확인 내역 수정 모달 ── -->
 <div id="modal-unconfirmed" class="modal-overlay hidden" onclick="closeUnconfirmed(event)">
   <div class="modal-sheet">
-    <h3 class="text-base font-semibold mb-4">미확인 내역 수정</h3>
+    <div class="modal-grabber"></div>
+    <h3 class="text-base font-extrabold mb-4" style="color:var(--on-surface)">미확인 내역 수정</h3>
     <input type="hidden" id="uc-id">
     <div class="space-y-3">
       <div class="field">
@@ -268,7 +287,8 @@
 <!-- ── 수동 입력 모달 ── -->
 <div id="modal-manual" class="modal-overlay hidden" onclick="closeManual(event)">
   <div class="modal-sheet">
-    <h3 class="text-base font-semibold mb-4">거래 직접 입력</h3>
+    <div class="modal-grabber"></div>
+    <h3 class="text-base font-extrabold mb-4" style="color:var(--on-surface)">거래 직접 입력</h3>
     <div class="space-y-3">
       <div class="field">
         <label>거래 종류</label>
@@ -305,7 +325,8 @@
 <!-- ── 큰지출 입력 모달 ── -->
 <div id="modal-expense" class="modal-overlay hidden" onclick="closeExpense(event)">
   <div class="modal-sheet">
-    <h3 class="text-base font-semibold mb-4">뜻밖의 큰지출 추가</h3>
+    <div class="modal-grabber"></div>
+    <h3 class="text-base font-extrabold mb-4" style="color:var(--on-surface)">뜻밖의 큰지출 추가</h3>
     <div class="space-y-3">
       <div class="field">
         <label>금액 (원)</label>
